@@ -3,11 +3,13 @@ export interface SkillStatus {
   skill: string;
   isMastered: boolean;
   repeatCount: number;
+  info?: string;
 }
 
 export interface LessonLog {
   id: string;
   date: string; // ISO string
+  title?: string;
   notes: string;
 }
 

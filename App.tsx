@@ -29,6 +29,7 @@ const App: React.FC = () => {
         skill,
         isMastered: false,
         repeatCount: 0,
+        info: '',
       }));
     });
 

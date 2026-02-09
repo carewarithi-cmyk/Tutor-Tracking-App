@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Student, SkillStatus, LessonLog } from '../types';
 import { OG_LEVELS } from '../constants';
-import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon } from './Icons';
+import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon, InformationCircleIcon } from './Icons';
 
 interface StudentViewProps {
   student: Student;
@@ -18,9 +18,15 @@ const SkillItem: React.FC<{
   onUnmaster: (skillName: string) => void;
   onFocus: () => void;
 }> = ({ skillStatus, isFocused, onUpdate, onMaster, onUnmaster, onFocus }) => {
+  const [showInfo, setShowInfo] = useState(false);
+
   const handleRepeatChange = (delta: number) => {
     const newCount = Math.max(0, skillStatus.repeatCount + delta);
     onUpdate({ ...skillStatus, repeatCount: newCount });
+  };
+
+  const handleInfoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onUpdate({ ...skillStatus, info: e.target.value });
   };
 
   const itemBg = skillStatus.isMastered ? 'bg-green-100 border-green-200' : isFocused ? 'bg-sky-50 border-sky-200' : 'bg-white border-slate-200 hover:bg-slate-50';
@@ -29,42 +35,63 @@ const SkillItem: React.FC<{
   return (
     <div 
       onClick={onFocus}
-      className={`p-3 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all cursor-pointer ${itemBg}`}
+      className={`p-3 rounded-lg border flex flex-col transition-all cursor-pointer ${itemBg}`}
     >
-      <div className="flex items-center gap-3 flex-grow">
-        {skillStatus.isMastered && <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0" />}
-        {isFocused && <SparklesIcon className="w-5 h-5 text-sky-500 flex-shrink-0 animate-pulse" />}
-        <span className={`font-medium capitalize ${textColor}`}>{skillStatus.skill}</span>
-      </div>
-      <div className="flex items-center gap-4 justify-end">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-500">Repeats:</span>
-          <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(-1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered}>
-            <MinusIcon className="w-4 h-4"/>
-          </button>
-          <span className="font-semibold w-5 text-center">{skillStatus.repeatCount}</span>
-          <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered}>
-            <PlusIcon className="w-4 h-4"/>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-grow">
+          {skillStatus.isMastered && <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0" />}
+          {isFocused && <SparklesIcon className="w-5 h-5 text-sky-500 flex-shrink-0 animate-pulse" />}
+          <span className={`font-medium capitalize ${textColor}`}>{skillStatus.skill}</span>
+          <button 
+            onClick={(e) => { e.stopPropagation(); setShowInfo(!showInfo); }} 
+            className={`p-1 rounded-full transition-colors ${skillStatus.info ? 'text-sky-600' : 'text-slate-400'} hover:bg-sky-100`}
+          >
+            <InformationCircleIcon className="w-5 h-5" />
           </button>
         </div>
-        
-        {skillStatus.isMastered ? (
-          <button 
-            onClick={(e) => { e.stopPropagation(); onUnmaster(skillStatus.skill); }}
-            className="px-3 py-1.5 text-sm font-semibold text-white bg-amber-500 rounded-md shadow-sm hover:bg-amber-600 transition-colors"
-          >
-            Not Mastered
-          </button>
-        ) : (
-          <button 
-            onClick={(e) => { e.stopPropagation(); onMaster(skillStatus.skill); }}
-            disabled={!isFocused}
-            className="px-3 py-1.5 text-sm font-semibold text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
-          >
-            Mastered
-          </button>
-        )}
+        <div className="flex items-center gap-4 justify-end">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">Repeats:</span>
+            <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(-1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered}>
+              <MinusIcon className="w-4 h-4"/>
+            </button>
+            <span className="font-semibold w-5 text-center">{skillStatus.repeatCount}</span>
+            <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered}>
+              <PlusIcon className="w-4 h-4"/>
+            </button>
+          </div>
+          
+          {skillStatus.isMastered ? (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onUnmaster(skillStatus.skill); }}
+              className="px-3 py-1.5 text-sm font-semibold text-white bg-amber-500 rounded-md shadow-sm hover:bg-amber-600 transition-colors"
+            >
+              Not Mastered
+            </button>
+          ) : (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onMaster(skillStatus.skill); }}
+              disabled={!isFocused}
+              className="px-3 py-1.5 text-sm font-semibold text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+            >
+              Mastered
+            </button>
+          )}
+        </div>
       </div>
+      
+      {showInfo && (
+        <div className="mt-3 p-3 bg-white rounded-md border border-sky-100" onClick={(e) => e.stopPropagation()}>
+          <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Skill Notes / Information</label>
+          <textarea 
+            className="w-full p-2 text-sm border-none bg-slate-50 focus:ring-0 rounded-md"
+            rows={2}
+            value={skillStatus.info || ''}
+            onChange={handleInfoChange}
+            placeholder="Add specific notes about this student's progress with this skill..."
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -72,6 +99,7 @@ const SkillItem: React.FC<{
 
 const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onBack }) => {
   const [lessonDate, setLessonDate] = useState(new Date().toISOString().split('T')[0]);
+  const [lessonTitle, setLessonTitle] = useState('');
   const [lessonNotes, setLessonNotes] = useState('');
   const [showLogs, setShowLogs] = useState(false);
   const [focusedSkill, setFocusedSkill] = useState<string | null>(null);
@@ -82,7 +110,6 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
   useEffect(() => {
-    // Set initial focus to the first unmastered skill when loading a student or switching levels
     const currentLevelSkills = student.levelProgress[student.currentLevel] || [];
     const firstUnmastered = currentLevelSkills.find(s => !s.isMastered);
     if (firstUnmastered) {
@@ -151,11 +178,13 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
     const newLog: LessonLog = {
       id: new Date().toISOString(),
       date: selectedDate.toISOString(),
+      title: lessonTitle,
       notes: lessonNotes,
     };
     
     onUpdateStudent({ ...student, lessonLogs: [newLog, ...student.lessonLogs] });
     setLessonDate(new Date().toISOString().split('T')[0]);
+    setLessonTitle('');
     setLessonNotes('');
   };
 
@@ -252,16 +281,29 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
           Lesson Logger
         </h3>
         <form onSubmit={handleLogLesson} className="space-y-4">
-          <div>
-            <label htmlFor="date" className="block text-sm font-medium text-slate-600 mb-1">Date</label>
-            <input 
-              type="date"
-              id="date"
-              value={lessonDate}
-              onChange={e => setLessonDate(e.target.value)}
-              className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
-              required
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="date" className="block text-sm font-medium text-slate-600 mb-1">Date</label>
+              <input 
+                type="date"
+                id="date"
+                value={lessonDate}
+                onChange={e => setLessonDate(e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-slate-600 mb-1">Title (Optional)</label>
+              <input 
+                type="text"
+                id="title"
+                value={lessonTitle}
+                onChange={e => setLessonTitle(e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+                placeholder="e.g., Vowel Teams Introduction"
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="notes" className="block text-sm font-medium text-slate-600 mb-1">Lesson Notes</label>
@@ -296,8 +338,11 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
           <div className="mt-4 space-y-4 max-h-96 overflow-y-auto pr-2">
             {student.lessonLogs.length > 0 ? student.lessonLogs.map(log => (
               <div key={log.id} className="p-4 border-l-4 border-sky-400 bg-slate-50 rounded-r-lg">
-                <p className="font-semibold text-slate-700">{new Date(log.date).toLocaleDateString()}</p>
-                <p className="text-slate-600 whitespace-pre-wrap mt-1">{log.notes}</p>
+                <div className="flex justify-between items-start mb-1">
+                  <p className="font-bold text-slate-800">{log.title || 'Untitled Lesson'}</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase">{new Date(log.date).toLocaleDateString()}</p>
+                </div>
+                <p className="text-slate-600 whitespace-pre-wrap text-sm">{log.notes}</p>
               </div>
             )) : <p className="text-slate-500">No lessons logged yet.</p>}
           </div>
