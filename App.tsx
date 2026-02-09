@@ -54,17 +54,25 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-      <header className="bg-white shadow-md">
+    <div className="min-h-screen bg-[#f8fafc] font-sans text-slate-800">
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
-                <h1 className="text-2xl sm:text-3xl font-bold text-sky-700 tracking-tight cursor-pointer" onClick={handleGoToDashboard}>
-                  Orton-Gillingham Tracker
-                </h1>
+                <div 
+                  className="flex items-center gap-2 cursor-pointer group" 
+                  onClick={handleGoToDashboard}
+                >
+                  <div className="w-10 h-10 bg-gradient-to-tr from-sky-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform">
+                    <span className="text-white font-black text-xl">OG</span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-700 to-indigo-700 tracking-tight">
+                    Tracker
+                  </h1>
+                </div>
                 {!selectedStudent && (
                     <button
                         onClick={() => setIsAddingStudent(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white font-semibold rounded-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75 transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-sky-600 text-white font-bold rounded-full shadow-lg shadow-sky-200 hover:bg-sky-700 hover:shadow-xl transition-all active:scale-95"
                     >
                         <PlusCircleIcon className="w-5 h-5" />
                         <span className="hidden sm:inline">Add Student</span>
@@ -90,8 +98,8 @@ const App: React.FC = () => {
           />
         )}
       </main>
-      <footer className="text-center py-4 text-slate-500 text-sm">
-        <p>Built for Tutors. Data saved locally in your browser.</p>
+      <footer className="text-center py-12 text-slate-400 text-xs font-medium uppercase tracking-widest">
+        <p>Made for Educational Success &bull; Data Local to Browser</p>
       </footer>
     </div>
   );
