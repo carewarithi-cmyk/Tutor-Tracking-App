@@ -1,0 +1,5 @@
+{
+  "name": "Orton-Gillingham Progress Tracker",
+  "description": "An application for Orton-Gillingham tutors to manage student progress through specific levels, track skills, and log lessons. All data is saved locally in your browser.",
+  "requestFramePermissions": []
+}
