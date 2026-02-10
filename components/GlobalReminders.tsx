@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Student, GlobalSettings, QuickLink } from '../types';
-import { CalendarDaysIcon, ChevronDownIcon, ChevronUpIcon, LinkIcon, PlusIcon, XMarkIcon } from './Icons';
+import { ChevronDownIcon, ChevronUpIcon, PlusIcon, XMarkIcon } from './Icons';
 
 interface GlobalRemindersProps {
   students: Student[];
@@ -32,7 +32,9 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const today = new Date();
     const todayName = daysOfWeek[today.getDay()];
-    const tomorrowName = daysOfWeek[(today.getDay() + 1) % 7];
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowName = daysOfWeek[tomorrow.getDay()];
 
     const todayStudents = students.filter(s => s.tutoringDays?.includes(todayName));
     const tomorrowStudents = students.filter(s => s.tutoringDays?.includes(tomorrowName));
@@ -40,10 +42,16 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
     const handleAddLink = (e: React.FormEvent) => {
         e.preventDefault();
         if (newLinkTitle.trim() && newLinkUrl.trim()) {
+            // Basic URL validation
+            let url = newLinkUrl.trim();
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
             const newLink: QuickLink = {
                 id: new Date().toISOString(),
                 title: newLinkTitle.trim(),
-                url: newLinkUrl.trim(),
+                url: url,
             };
             onUpdateSettings({ ...settings, quickLinks: [...settings.quickLinks, newLink] });
             setNewLinkTitle('');
@@ -58,6 +66,13 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
         });
     };
 
+    const StudentListItem: React.FC<{ student: Student }> = ({ student }) => (
+        <li className="py-2">
+            <p className="text-sm text-slate-800 font-bold">{student.name} <span className="font-medium text-slate-500">(Lvl {student.currentLevel})</span></p>
+            <p className="text-xs text-slate-600 pl-2">Next: {student.nextLessonFocus || '—'}</p>
+        </li>
+    );
+
     return (
         <div className="bg-white rounded-2xl shadow-xl border border-slate-100 sticky top-28">
             <CollapsibleSection title="Today" defaultOpen={true}>
@@ -70,13 +85,13 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
                         className="w-full p-2 text-sm border border-slate-200 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
                     />
                     <div>
-                        <h5 className="text-sm font-bold text-slate-600 mb-2">Students to Prioritize:</h5>
+                        <h5 className="text-sm font-bold text-slate-600 mb-1">Students Scheduled Today:</h5>
                         {todayStudents.length > 0 ? (
-                             <ul className="space-y-1">
-                                {todayStudents.map(s => <li key={s.id} className="text-sm text-slate-800 font-medium">- {s.name}</li>)}
+                             <ul className="divide-y divide-slate-100">
+                                {todayStudents.map(s => <StudentListItem key={s.id} student={s} />)}
                             </ul>
                         ) : (
-                            <p className="text-xs text-slate-500 italic">No students scheduled for today.</p>
+                            <p className="text-xs text-slate-500 italic py-2">No students scheduled for today.</p>
                         )}
                     </div>
                 </div>
@@ -92,13 +107,13 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
                         className="w-full p-2 text-sm border border-slate-200 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
                     />
                      <div>
-                        <h5 className="text-sm font-bold text-slate-600 mb-2">Students to Prioritize:</h5>
+                        <h5 className="text-sm font-bold text-slate-600 mb-1">Students Scheduled Tomorrow:</h5>
                          {tomorrowStudents.length > 0 ? (
-                             <ul className="space-y-1">
-                                {tomorrowStudents.map(s => <li key={s.id} className="text-sm text-slate-800 font-medium">- {s.name}</li>)}
+                             <ul className="divide-y divide-slate-100">
+                                {tomorrowStudents.map(s => <StudentListItem key={s.id} student={s} />)}
                             </ul>
                         ) : (
-                            <p className="text-xs text-slate-500 italic">No students scheduled for tomorrow.</p>
+                            <p className="text-xs text-slate-500 italic py-2">No students scheduled for tomorrow.</p>
                         )}
                     </div>
                 </div>
@@ -113,7 +128,7 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-sm text-sky-600 hover:underline truncate" title={link.url}>
                                        {link.title}
                                    </a>
-                                   <button onClick={() => handleDeleteLink(link.id)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                   <button onClick={() => handleDeleteLink(link.id)} className="p-1 opacity-0 group-hover:opacity-100 transition-opacity" aria-label={`Delete ${link.title}`}>
                                        <XMarkIcon className="w-4 h-4 text-red-500 hover:text-red-700" />
                                    </button>
                                </li>
@@ -128,6 +143,7 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
                             value={newLinkTitle}
                             onChange={(e) => setNewLinkTitle(e.target.value)}
                             placeholder="Link Title"
+                            required
                             className="w-full text-sm p-1.5 border border-slate-200 rounded-md focus:ring-sky-500 focus:border-sky-500"
                         />
                         <div className="flex items-center gap-2">
@@ -135,10 +151,11 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
                                 type="url"
                                 value={newLinkUrl}
                                 onChange={(e) => setNewLinkUrl(e.target.value)}
-                                placeholder="https://..."
+                                placeholder="https://example.com"
+                                required
                                 className="w-full text-sm p-1.5 border border-slate-200 rounded-md focus:ring-sky-500 focus:border-sky-500"
                             />
-                            <button type="submit" className="p-1.5 bg-sky-600 text-white rounded-md hover:bg-sky-700">
+                            <button type="submit" className="p-1.5 bg-sky-600 text-white rounded-md hover:bg-sky-700" aria-label="Add new link">
                                 <PlusIcon className="w-4 h-4" />
                             </button>
                         </div>

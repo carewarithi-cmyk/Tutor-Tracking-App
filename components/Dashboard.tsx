@@ -4,7 +4,7 @@ import { Student, GlobalSettings } from '../types';
 import { OG_LEVELS } from '../constants';
 import AddStudentForm from './AddStudentForm';
 import GlobalReminders from './GlobalReminders';
-import { UserGroupIcon, ChevronRightIcon, SparklesIcon, PlusCircleIcon, ClipboardDocumentListIcon } from './Icons';
+import { UserGroupIcon, ChevronRightIcon, SparklesIcon, PlusCircleIcon } from './Icons';
 
 interface DashboardProps {
   students: Student[];
@@ -83,6 +83,7 @@ const Dashboard: React.FC<DashboardProps> = ({ students, onSelectStudent, isAddi
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {students.map(student => {
                         const progress = calculateProgress(student);
+                        const hasSnapshot = student.quickNote || student.lastLessonFocus || student.nextLessonFocus;
                         return (
                             <div 
                                 key={student.id}
@@ -102,7 +103,7 @@ const Dashboard: React.FC<DashboardProps> = ({ students, onSelectStudent, isAddi
                                     </div>
                                 </div>
                                 
-                                <div className="space-y-4">
+                                <div className="flex-grow space-y-4">
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Progress</p>
@@ -116,24 +117,24 @@ const Dashboard: React.FC<DashboardProps> = ({ students, onSelectStudent, isAddi
                                         </div>
                                     </div>
 
-                                    {student.quickNote && (
-                                        <div className="border-t border-slate-100 pt-3">
-                                            <div className="text-slate-500">
-                                                <p className="text-xs italic truncate">{student.quickNote}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {student.tutoringDays && student.tutoringDays.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 pt-1">
-                                            {student.tutoringDays.map(day => (
-                                                <span key={day} className="text-[10px] px-2 py-0.5 bg-indigo-50 text-indigo-600 font-bold rounded-md uppercase">
-                                                    {day.substring(0,3)}
-                                                </span>
-                                            ))}
+                                    {hasSnapshot && (
+                                        <div className="border-t border-slate-100 pt-3 space-y-1 text-xs text-slate-600">
+                                            {student.quickNote && <p className="truncate"><strong>Note:</strong> {student.quickNote}</p>}
+                                            {student.lastLessonFocus && <p className="truncate"><strong>Last:</strong> {student.lastLessonFocus}</p>}
+                                            {student.nextLessonFocus && <p className="truncate"><strong>Next:</strong> {student.nextLessonFocus}</p>}
                                         </div>
                                     )}
                                 </div>
+
+                                {student.tutoringDays && student.tutoringDays.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 pt-4 mt-auto">
+                                        {student.tutoringDays.map(day => (
+                                            <span key={day} className="text-[10px] px-2 py-0.5 bg-indigo-50 text-indigo-600 font-bold rounded-md uppercase">
+                                                {day.substring(0,3)}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
