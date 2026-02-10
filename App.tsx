@@ -45,6 +45,11 @@ const App: React.FC = () => {
     setStudents(prev => prev.map(s => s.id === updatedStudent.id ? updatedStudent : s));
   }, [setStudents]);
 
+  const handleDeleteStudent = (studentId: string) => {
+    setStudents(prev => prev.filter(s => s.id !== studentId));
+    setSelectedStudentId(null);
+  };
+
   const selectedStudent = useMemo(() => {
     return students.find(s => s.id === selectedStudentId) || null;
   }, [students, selectedStudentId]);
@@ -86,6 +91,7 @@ const App: React.FC = () => {
           <StudentView 
             student={selectedStudent}
             onUpdateStudent={handleUpdateStudent}
+            onDeleteStudent={handleDeleteStudent}
             onBack={handleGoToDashboard}
           />
         ) : (

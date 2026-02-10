@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Student, SkillStatus, LessonLog } from '../types';
 import { OG_LEVELS } from '../constants';
-import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon, InformationCircleIcon, ArrowUpIcon } from './Icons';
+import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon, InformationCircleIcon, ArrowUpIcon, TrashIcon } from './Icons';
 
 interface StudentViewProps {
   student: Student;
   onUpdateStudent: (student: Student) => void;
+  onDeleteStudent: (studentId: string) => void;
   onBack: () => void;
 }
 
@@ -67,7 +68,7 @@ const SkillItem: React.FC<{
               onClick={(e) => { e.stopPropagation(); onUnmaster(skillStatus.skill); }}
               className="px-3 py-1.5 text-sm font-semibold text-white bg-amber-500 rounded-md shadow-sm hover:bg-amber-600 transition-colors"
             >
-              Un-master
+              Redo
             </button>
           ) : (
             <button 
@@ -97,7 +98,7 @@ const SkillItem: React.FC<{
 };
 
 
-const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onBack }) => {
+const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onDeleteStudent, onBack }) => {
   const [lessonDate, setLessonDate] = useState(new Date().toISOString().split('T')[0]);
   const [lessonTitle, setLessonTitle] = useState('');
   const [lessonNotes, setLessonNotes] = useState('');
@@ -106,6 +107,11 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
   
   const [isEditingDays, setIsEditingDays] = useState(false);
   const [editedDays, setEditedDays] = useState<string[]>(student.tutoringDays || []);
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(student.name);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const [showScrollButton, setShowScrollButton] = useState(false);
   
@@ -145,6 +151,14 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
   const handleSaveDays = () => {
       onUpdateStudent({ ...student, tutoringDays: editedDays });
       setIsEditingDays(false);
+  };
+
+  const handleSaveName = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editedName.trim()) {
+        onUpdateStudent({ ...student, name: editedName.trim() });
+        setIsEditingName(false);
+    }
   };
 
   const handleLevelChange = (newLevel: number) => {
@@ -215,9 +229,30 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
           <ArrowLeftIcon className="w-5 h-5"/>
           Back to Dashboard
         </button>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="text-3xl font-bold text-slate-800">{student.name}</h2>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            {isEditingName ? (
+                <form onSubmit={handleSaveName} className="flex items-center gap-2">
+                    <input 
+                        type="text"
+                        value={editedName}
+                        onChange={(e) => setEditedName(e.target.value)}
+                        className="text-3xl font-bold p-2 border border-sky-300 rounded-md"
+                        autoFocus
+                    />
+                    <button type="submit" className="px-3 py-1.5 text-sm font-semibold text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600">Save</button>
+                    <button type="button" onClick={() => { setIsEditingName(false); setEditedName(student.name); }} className="px-3 py-1.5 text-sm font-semibold text-slate-700 bg-slate-200 rounded-md shadow-sm hover:bg-slate-300">Cancel</button>
+                </form>
+            ) : (
+                <div className="flex items-center gap-3">
+                    <h2 className="text-3xl font-bold text-slate-800">{student.name}</h2>
+                    <button onClick={() => setIsEditingName(true)} className="p-1.5 rounded-full hover:bg-slate-200" aria-label="Edit student name">
+                        <PencilIcon className="w-5 h-5 text-slate-500" />
+                    </button>
+                </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-center">
             <span className="font-semibold">Current Level:</span>
              <select 
                 value={student.currentLevel}
@@ -266,6 +301,12 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
                     )) : <p className="text-sm text-slate-500">No tutoring days set.</p>}
                 </div>
             )}
+            <div className="border-t border-slate-200 mt-4 pt-4">
+                <button onClick={() => setIsDeleteModalOpen(true)} className="flex items-center gap-2 text-sm text-red-500 font-semibold hover:text-red-700">
+                    <TrashIcon className="w-4 h-4" />
+                    Delete Student Record
+                </button>
+            </div>
         </div>
       </div>
 
@@ -377,6 +418,24 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
       >
         <ArrowUpIcon className="w-6 h-6" />
       </button>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+                <h3 className="text-xl font-bold text-slate-800">Confirm Deletion</h3>
+                <p className="text-slate-600 mt-2 mb-6">Are you sure you want to permanently delete the record for <span className="font-bold">{student.name}</span>? This action cannot be undone.</p>
+                <div className="flex justify-end gap-4">
+                    <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 bg-slate-200 text-slate-800 font-semibold rounded-lg hover:bg-slate-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button onClick={() => onDeleteStudent(student.id)} className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors">
+                        Yes, Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   );
 };
