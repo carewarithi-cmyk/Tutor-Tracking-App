@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Student, SkillStatus, LessonLog } from '../types';
 import { OG_LEVELS } from '../constants';
-import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon, InformationCircleIcon } from './Icons';
+import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon, InformationCircleIcon, ArrowUpIcon } from './Icons';
 
 interface StudentViewProps {
   student: Student;
@@ -45,6 +45,7 @@ const SkillItem: React.FC<{
           <button 
             onClick={(e) => { e.stopPropagation(); setShowInfo(!showInfo); }} 
             className={`p-1 rounded-full transition-colors ${skillStatus.info ? 'text-sky-600' : 'text-slate-400'} hover:bg-sky-100`}
+            aria-label="Show skill notes"
           >
             <InformationCircleIcon className="w-5 h-5" />
           </button>
@@ -52,11 +53,11 @@ const SkillItem: React.FC<{
         <div className="flex items-center gap-4 justify-end">
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500">Repeats:</span>
-            <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(-1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered}>
+            <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(-1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered} aria-label="Decrease repeat count">
               <MinusIcon className="w-4 h-4"/>
             </button>
             <span className="font-semibold w-5 text-center">{skillStatus.repeatCount}</span>
-            <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered}>
+            <button onClick={(e) => { e.stopPropagation(); handleRepeatChange(1); }} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300 disabled:opacity-50" disabled={skillStatus.isMastered} aria-label="Increase repeat count">
               <PlusIcon className="w-4 h-4"/>
             </button>
           </div>
@@ -66,13 +67,12 @@ const SkillItem: React.FC<{
               onClick={(e) => { e.stopPropagation(); onUnmaster(skillStatus.skill); }}
               className="px-3 py-1.5 text-sm font-semibold text-white bg-amber-500 rounded-md shadow-sm hover:bg-amber-600 transition-colors"
             >
-              Not Mastered
+              Un-master
             </button>
           ) : (
             <button 
               onClick={(e) => { e.stopPropagation(); onMaster(skillStatus.skill); }}
-              disabled={!isFocused}
-              className="px-3 py-1.5 text-sm font-semibold text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 text-sm font-semibold text-white bg-green-500 rounded-md shadow-sm hover:bg-green-600 transition-colors"
             >
               Mastered
             </button>
@@ -107,7 +107,25 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
   const [isEditingDays, setIsEditingDays] = useState(false);
   const [editedDays, setEditedDays] = useState<string[]>(student.tutoringDays || []);
 
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  useEffect(() => {
+    const handleScroll = () => {
+        if (window.scrollY > 300) {
+            setShowScrollButton(true);
+        } else {
+            setShowScrollButton(false);
+        }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   
   useEffect(() => {
     const currentLevelSkills = student.levelProgress[student.currentLevel] || [];
@@ -160,7 +178,7 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
 
   const handleUnmasterSkill = (skillName: string) => {
     const newProgress = student.levelProgress[student.currentLevel].map(s => 
-      s.skill === skillName ? { ...s, isMastered: false } : s
+      s.skill === skillName ? { ...s, isMastered: false, repeatCount: 0 } : s
     );
     onUpdateStudent({
       ...student,
@@ -348,6 +366,17 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onB
           </div>
         )}
       </div>
+
+      {/* Scroll To Top button */}
+      <button
+        onClick={scrollToTop}
+        aria-label="Scroll to top"
+        className={`fixed bottom-6 right-6 z-50 flex items-center justify-center h-12 w-12 rounded-full bg-sky-600 text-white shadow-lg transition-all duration-300 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 ${
+            showScrollButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+      >
+        <ArrowUpIcon className="w-6 h-6" />
+      </button>
     </div>
   );
 };
