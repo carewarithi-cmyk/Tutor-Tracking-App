@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Student, SkillStatus, LessonLog } from '../types';
 import { OG_LEVELS } from '../constants';
-import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon, InformationCircleIcon, ArrowUpIcon, TrashIcon } from './Icons';
+import { ArrowLeftIcon, BookOpenIcon, ClockIcon, PlusIcon, MinusIcon, CheckCircleIcon, SparklesIcon, DocumentTextIcon, ChevronUpIcon, ChevronDownIcon, PencilIcon, InformationCircleIcon, ArrowUpIcon, TrashIcon, ClipboardDocumentListIcon } from './Icons';
 
 interface StudentViewProps {
   student: Student;
@@ -112,10 +112,44 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onD
   const [editedName, setEditedName] = useState(student.name);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
   const [showScrollButton, setShowScrollButton] = useState(false);
   
+  // State for new autosaving fields
+  const [quickNote, setQuickNote] = useState(student.quickNote || '');
+  const [lastLessonFocus, setLastLessonFocus] = useState(student.lastLessonFocus || '');
+  const [nextLessonFocus, setNextLessonFocus] = useState(student.nextLessonFocus || '');
+  const autosaveTimeoutRef = useRef<number | null>(null);
+
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  // Autosave effect for snapshot fields
+  useEffect(() => {
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+    }
+    autosaveTimeoutRef.current = window.setTimeout(() => {
+      // Check if there are any changes before updating
+      if (
+        student.quickNote !== quickNote ||
+        student.lastLessonFocus !== lastLessonFocus ||
+        student.nextLessonFocus !== nextLessonFocus
+      ) {
+        onUpdateStudent({
+          ...student,
+          quickNote,
+          lastLessonFocus,
+          nextLessonFocus,
+        });
+      }
+    }, 1500); // 1.5 second delay
+
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+    };
+  }, [quickNote, lastLessonFocus, nextLessonFocus, student, onUpdateStudent]);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -139,7 +173,7 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onD
     if (firstUnmastered) {
       setFocusedSkill(firstUnmastered.skill);
     }
-  }, [student.id, student.currentLevel]);
+  }, [student.id, student.currentLevel, student.levelProgress]);
 
 
   const handleDayChangeForEdit = (day: string) => {
@@ -267,48 +301,95 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onD
               </select>
           </div>
         </div>
-        <div className="mt-4 bg-slate-50 p-4 rounded-lg border">
-            <div className="flex justify-between items-center">
-                <h4 className="font-semibold text-slate-600">Tutoring Days</h4>
-                <button onClick={() => { setIsEditingDays(!isEditingDays); setEditedDays(student.tutoringDays || []); }} className="text-sm font-semibold text-sky-600 hover:text-sky-800 flex items-center gap-1">
-                    <PencilIcon className="w-4 h-4"/>
-                    {isEditingDays ? 'Cancel' : 'Edit'}
-                </button>
-            </div>
-            {isEditingDays ? (
-                <div className="mt-2">
-                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                        {daysOfWeek.map(day => (
-                            <label key={day} className="flex items-center justify-center space-x-2 p-2 rounded-md border border-slate-200 has-[:checked]:bg-sky-100 has-[:checked]:border-sky-300 transition-colors cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={editedDays.includes(day)}
-                                    onChange={() => handleDayChangeForEdit(day)}
-                                    className="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                                />
-                                <span>{day.substring(0,3)}</span>
-                            </label>
-                        ))}
-                    </div>
-                    <div className="text-right mt-4">
-                        <button onClick={handleSaveDays} className="px-3 py-1.5 text-sm font-semibold text-white bg-sky-600 rounded-md shadow-sm hover:bg-sky-700">Save Changes</button>
-                    </div>
-                </div>
-            ) : (
-                <div className="mt-2 flex flex-wrap gap-2">
-                    {(student.tutoringDays && student.tutoringDays.length > 0) ? student.tutoringDays.map(day => (
-                        <span key={day} className="px-3 py-1 bg-sky-100 text-sky-800 text-sm font-medium rounded-full">{day}</span>
-                    )) : <p className="text-sm text-slate-500">No tutoring days set.</p>}
-                </div>
-            )}
-            <div className="border-t border-slate-200 mt-4 pt-4">
-                <button onClick={() => setIsDeleteModalOpen(true)} className="flex items-center gap-2 text-sm text-red-500 font-semibold hover:text-red-700">
-                    <TrashIcon className="w-4 h-4" />
-                    Delete Student Record
-                </button>
-            </div>
-        </div>
       </div>
+      
+      {/* Tutor's Snapshot Section */}
+      <div className="bg-white p-6 rounded-xl shadow-lg">
+          <h3 className="text-xl font-bold text-slate-700 mb-4">Tutor's Snapshot</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                  <label htmlFor="quick-notes" className="block text-sm font-medium text-slate-600 mb-1">
+                      Quick Notes
+                  </label>
+                  <textarea
+                      id="quick-notes"
+                      value={quickNote}
+                      onChange={(e) => setQuickNote(e.target.value)}
+                      rows={4}
+                      className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+                      placeholder="At-a-glance notes for this student..."
+                  />
+              </div>
+              <div className="space-y-4">
+                  <div>
+                      <label htmlFor="last-lesson-focus" className="block text-sm font-medium text-slate-600 mb-1">Last Lesson Focus</label>
+                      <input
+                          type="text"
+                          id="last-lesson-focus"
+                          value={lastLessonFocus}
+                          onChange={(e) => setLastLessonFocus(e.target.value)}
+                          className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+                          placeholder="e.g., Practiced 'ch' vs 'tch'"
+                      />
+                  </div>
+                  <div>
+                      <label htmlFor="next-lesson-focus" className="block text-sm font-medium text-slate-600 mb-1">Next Lesson Focus</label>
+                      <input
+                          type="text"
+                          id="next-lesson-focus"
+                          value={nextLessonFocus}
+                          onChange={(e) => setNextLessonFocus(e.target.value)}
+                          className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+                          placeholder="e.g., Introduce '-sion' sound"
+                      />
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      {/* Settings & Management */}
+      <div className="mt-4 bg-slate-50 p-4 rounded-lg border">
+          <div className="flex justify-between items-center">
+              <h4 className="font-semibold text-slate-600">Tutoring Days</h4>
+              <button onClick={() => { setIsEditingDays(!isEditingDays); setEditedDays(student.tutoringDays || []); }} className="text-sm font-semibold text-sky-600 hover:text-sky-800 flex items-center gap-1">
+                  <PencilIcon className="w-4 h-4"/>
+                  {isEditingDays ? 'Cancel' : 'Edit'}
+              </button>
+          </div>
+          {isEditingDays ? (
+              <div className="mt-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                      {daysOfWeek.map(day => (
+                          <label key={day} className="flex items-center justify-center space-x-2 p-2 rounded-md border border-slate-200 has-[:checked]:bg-sky-100 has-[:checked]:border-sky-300 transition-colors cursor-pointer">
+                              <input
+                                  type="checkbox"
+                                  checked={editedDays.includes(day)}
+                                  onChange={() => handleDayChangeForEdit(day)}
+                                  className="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+                              />
+                              <span>{day.substring(0,3)}</span>
+                          </label>
+                      ))}
+                  </div>
+                  <div className="text-right mt-4">
+                      <button onClick={handleSaveDays} className="px-3 py-1.5 text-sm font-semibold text-white bg-sky-600 rounded-md shadow-sm hover:bg-sky-700">Save Changes</button>
+                  </div>
+              </div>
+          ) : (
+              <div className="mt-2 flex flex-wrap gap-2">
+                  {(student.tutoringDays && student.tutoringDays.length > 0) ? student.tutoringDays.map(day => (
+                      <span key={day} className="px-3 py-1 bg-sky-100 text-sky-800 text-sm font-medium rounded-full">{day}</span>
+                  )) : <p className="text-sm text-slate-500">No tutoring days set.</p>}
+              </div>
+          )}
+          <div className="border-t border-slate-200 mt-4 pt-4">
+              <button onClick={() => setIsDeleteModalOpen(true)} className="flex items-center gap-2 text-sm text-red-500 font-semibold hover:text-red-700">
+                  <TrashIcon className="w-4 h-4" />
+                  Delete Student Record
+              </button>
+          </div>
+      </div>
+
 
       {/* Skill Checklist */}
       <div className="bg-white p-6 rounded-xl shadow-lg">

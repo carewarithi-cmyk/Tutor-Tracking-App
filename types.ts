@@ -22,4 +22,19 @@ export interface Student {
   };
   lessonLogs: LessonLog[];
   tutoringDays: string[];
+  quickNote?: string;
+  lastLessonFocus?: string;
+  nextLessonFocus?: string;
+}
+
+export interface QuickLink {
+    id: string;
+    title: string;
+    url: string;
+}
+
+export interface GlobalSettings {
+    todayPlan: string;
+    tomorrowPlan: string;
+    quickLinks: QuickLink[];
 }

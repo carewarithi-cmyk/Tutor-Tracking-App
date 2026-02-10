@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { Student } from './types';
+import { Student, GlobalSettings } from './types';
 import { OG_LEVELS } from './constants';
 import useLocalStorage from './hooks/useLocalStorage';
 import Dashboard from './components/Dashboard';
@@ -11,6 +11,11 @@ const App: React.FC = () => {
   const [students, setStudents] = useLocalStorage<Student[]>('og-students', []);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [isAddingStudent, setIsAddingStudent] = useState<boolean>(false);
+  const [globalSettings, setGlobalSettings] = useLocalStorage<GlobalSettings>('og-global-settings', {
+    todayPlan: '',
+    tomorrowPlan: '',
+    quickLinks: [],
+  });
 
   const handleAddStudent = (name: string, level: number, tutoringDays: string[]) => {
     const newStudent: Student = {
@@ -101,6 +106,8 @@ const App: React.FC = () => {
             isAddingStudent={isAddingStudent}
             setIsAddingStudent={setIsAddingStudent}
             onAddStudent={handleAddStudent}
+            globalSettings={globalSettings}
+            onUpdateGlobalSettings={setGlobalSettings}
           />
         )}
       </main>
