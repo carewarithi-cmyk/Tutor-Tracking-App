@@ -25,6 +25,7 @@ export interface Student {
   quickNote?: string;
   lastLessonFocus?: string;
   nextLessonFocus?: string;
+  currentBook?: string;
 }
 
 export interface QuickLink {

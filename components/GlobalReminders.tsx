@@ -69,6 +69,9 @@ const GlobalReminders: React.FC<GlobalRemindersProps> = ({ students, settings, o
     const StudentListItem: React.FC<{ student: Student }> = ({ student }) => (
         <li className="py-2">
             <p className="text-sm text-slate-800 font-bold">{student.name} <span className="font-medium text-slate-500">(Lvl {student.currentLevel})</span></p>
+            {student.currentBook && (
+                <p className="text-xs text-slate-600 pl-2">📚 Book: {student.currentBook}</p>
+            )}
             <p className="text-xs text-slate-600 pl-2">Next: {student.nextLessonFocus || '—'}</p>
         </li>
     );

@@ -118,6 +118,7 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onD
   const [quickNote, setQuickNote] = useState(student.quickNote || '');
   const [lastLessonFocus, setLastLessonFocus] = useState(student.lastLessonFocus || '');
   const [nextLessonFocus, setNextLessonFocus] = useState(student.nextLessonFocus || '');
+  const [currentBook, setCurrentBook] = useState(student.currentBook || '');
   const autosaveTimeoutRef = useRef<number | null>(null);
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -132,13 +133,15 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onD
       if (
         student.quickNote !== quickNote ||
         student.lastLessonFocus !== lastLessonFocus ||
-        student.nextLessonFocus !== nextLessonFocus
+        student.nextLessonFocus !== nextLessonFocus ||
+        student.currentBook !== currentBook
       ) {
         onUpdateStudent({
           ...student,
           quickNote,
           lastLessonFocus,
           nextLessonFocus,
+          currentBook,
         });
       }
     }, 1500); // 1.5 second delay
@@ -148,7 +151,7 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onD
         clearTimeout(autosaveTimeoutRef.current);
       }
     };
-  }, [quickNote, lastLessonFocus, nextLessonFocus, student, onUpdateStudent]);
+  }, [quickNote, lastLessonFocus, nextLessonFocus, currentBook, student, onUpdateStudent]);
 
 
   useEffect(() => {
@@ -315,12 +318,23 @@ const StudentView: React.FC<StudentViewProps> = ({ student, onUpdateStudent, onD
                       id="quick-notes"
                       value={quickNote}
                       onChange={(e) => setQuickNote(e.target.value)}
-                      rows={4}
+                      rows={6}
                       className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
                       placeholder="At-a-glance notes for this student..."
                   />
               </div>
               <div className="space-y-4">
+                  <div>
+                      <label htmlFor="current-book" className="block text-sm font-medium text-slate-600 mb-1">Current Book</label>
+                      <input
+                          type="text"
+                          id="current-book"
+                          value={currentBook}
+                          onChange={(e) => setCurrentBook(e.target.value)}
+                          className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+                          placeholder="e.g., The Little Red Hen"
+                      />
+                  </div>
                   <div>
                       <label htmlFor="last-lesson-focus" className="block text-sm font-medium text-slate-600 mb-1">Last Lesson Focus</label>
                       <input

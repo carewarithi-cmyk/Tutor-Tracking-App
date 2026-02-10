@@ -93,7 +93,7 @@ const Dashboard: React.FC<DashboardProps> = ({ students, onSelectStudent, isAddi
                                 {/* Accent line */}
                                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-sky-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center justify-between mb-2">
                                     <div>
                                         <p className="font-bold text-xl text-slate-800 group-hover:text-sky-700 transition-colors">{student.name}</p>
                                         <p className="text-sm font-semibold text-sky-500">Level {student.currentLevel}</p>
@@ -102,6 +102,12 @@ const Dashboard: React.FC<DashboardProps> = ({ students, onSelectStudent, isAddi
                                         <ChevronRightIcon className="w-5 h-5 text-slate-400 group-hover:text-sky-600" />
                                     </div>
                                 </div>
+
+                                {student.currentBook && (
+                                    <p className="text-sm text-slate-600 mb-4">
+                                        📚 Reading: <span className="font-medium">{student.currentBook}</span>
+                                    </p>
+                                )}
                                 
                                 <div className="flex-grow space-y-4">
                                     <div>

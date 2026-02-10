@@ -25,6 +25,7 @@ const App: React.FC = () => {
       levelProgress: {},
       lessonLogs: [],
       tutoringDays,
+      currentBook: '',
     };
     
     // Initialize progress for all levels
