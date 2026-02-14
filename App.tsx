@@ -31,11 +31,11 @@ const App: React.FC = () => {
     // Initialize progress for all levels
     Object.keys(OG_LEVELS).forEach(levelKey => {
       const levelNum = parseInt(levelKey);
-      newStudent.levelProgress[levelNum] = OG_LEVELS[levelNum].map(skill => ({
-        skill,
+      newStudent.levelProgress[levelNum] = OG_LEVELS[levelNum].map(skillDef => ({
+        skill: skillDef.name,
         isMastered: false,
         repeatCount: 0,
-        info: '',
+        info: skillDef.info || '',
       }));
     });
 
